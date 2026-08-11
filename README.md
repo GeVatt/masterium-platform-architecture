@@ -42,6 +42,63 @@
 
 ---
 
+---
+
+### Схема архитектуры
+
+Ниже представлена визуализация взаимодействия компонентов платформы:
+
+```mermaid
+flowchart TD
+    subgraph Frontend["Frontend (Vue 3 SPA)"]
+        UI["Пользовательский интерфейс"]
+        Store["Pinia State"]
+        WS_Client["WebSocket Client"]
+    end
+
+    subgraph Backend["Backend (Django + Daphne)"]
+        direction LR
+        API["REST API (DRF)"]
+        Consumers["WebSocket Consumers\n(Chat & Notifications)"]
+        Business["Сервисный слой\n(core.business_logic)"]
+        Tasks["Celery Beat\n(Планировщик)"]
+    end
+
+    subgraph Integrations["Интеграционные шлюзы"]
+        OData["OData Client\n(1С)"]
+        YouGile["YouGile REST API"]
+        FileParser["Импорт Excel/CSV\n(pandas)"]
+    end
+
+    subgraph Storage["Хранилище и инфраструктура"]
+        PG["PostgreSQL"]
+        Redis["Redis\n(Брокер + Кэш + Channel Layer)"]
+        Docker["Docker / Nginx"]
+    end
+
+    UI --> API
+    UI --> WS_Client
+    WS_Client --> Consumers
+    
+    API --> Business
+    Consumers --> Business
+    
+    Business --> PG
+    Business --> Redis
+    
+    Tasks --> OData
+    Tasks --> FileParser
+    
+    OData --> Business
+    YouGile --> Business
+    FileParser --> Business
+
+    Docker --> API
+    Docker --> Consumers
+    Docker --> Redis
+    Docker --> PG
+```
+
 ## 📊 Аналитические возможности (Реализованные)
 
 Платформа содержит встроенные инструменты для мониторинга и принятия решений:
